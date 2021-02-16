@@ -1,0 +1,57 @@
+//Background Subtraction
+//Reset ROI Manager, Log and Results table
+
+//run("Properties...", "channels=1 slices=15000 frames=1 unit=pixel pixel_width=1 pixel_height=1 voxel_depth=1");
+setTool("rectangle");
+roiManager("reset");
+run("Select None");
+run("Clear Results");
+
+//Set the division factor for pixel length to micrometers for later output measurements
+//Dialog.create("Pixel Size");
+//Dialog.addMessage("Enter pixel size");
+//Dialog.addNumber("Pixel (Microns)",0.413); // (0.413um/pixel) for Epi microscope with 63xObjective and 4x4 binning
+//Dialog.show();
+//p = Dialog.getNumber();
+
+//Define Background ROI and rename BG
+waitForUser( "Pause","Select Background ROI");
+roiManager("Add");
+roiManager("Select", 0);
+roiManager("rename", "BG");
+
+// Set to measure mean intensity values of ROIs
+run("Set Measurements...", "  mean redirect=None decimal=12");
+
+// Subtract background (BG) mean pixel intensity from each slice in the stack
+run("Clear Results");
+    i = 1;
+    do {
+        roiManager("Select", 0);
+        run("Set Slice...", "slice="+i);
+        run("Measure");
+        BG = getResult("Mean",0);  // -1 since table uses 0-based numbering
+        run("Select None");
+        run("Subtract...", "value="+BG+" slice");
+        i = i+1;
+        run("Next Slice [>]");
+    } while(i<=nSlices);
+    
+setSlice(1);
+
+//run("Brightness/Contrast...");
+//run("Enhance Contrast", "saturated=0.35");
+
+//Save BG subtracted stack and BG ROI 
+//saveAs("tiff")
+//roiManager("Deselect");
+//roiManager("Save", ROIpath+".zip");     
+
+//Reset everything
+roiManager("reset");
+run("Select None");
+run("Clear Results");
+
+//Make a hyperstack
+//run("Stack to Hyperstack...", "order=xyczt(default) channels=1 slices=150 frames=100 display=Greyscale");
+
